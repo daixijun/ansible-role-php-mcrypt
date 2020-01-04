@@ -1,0 +1,4 @@
+---
+# defaults file for daixijun.php-mcrypt
+php_mcrypt_version: 1.0.3
+php_mcrypt_download_url: http://pecl.php.net/get/mcrypt-{{ php_mcrypt_version }}.tgz

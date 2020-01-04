@@ -1,0 +1,65 @@
+---
+# tasks file for daixijun.php-mcrypt
+- name: Verify mcrypt extension is installed
+  stat:
+    path: "{{ php_extension_dir }}/mcrypt.so"
+  register: php_mcrypt_installed_stat
+
+- name: Check php mcrypt package is already exists
+  stat:
+    path: "{{ role_path }}/files/{{ php_mcrypt_download_url | basename }}"
+  become: false
+  run_once: true
+  delegate_to: localhost
+  register: _php_mcrypt_package_stat
+
+- name: Download php mcrypt package
+  get_url:
+    url: "{{ php_mcrypt_download_url }}"
+    dest: "{{ role_path }}/files/"
+  become: false
+  run_once: true
+  delegate_to: localhost
+  register: _php_mcrypt_package
+  when:
+    - not _php_mcrypt_package_stat.stat.exists
+    - not php_mcrypt_installed_stat.stat.exists
+
+- name: Unarchive php-mcrypt {{ php_mcrypt_version }}
+  unarchive:
+    src: "files/{{ php_mcrypt_download_url | basename }}"
+    dest: /usr/local/src/
+    remote_src: false
+    creates: /usr/local/src/mcrypt-{{ php_mcrypt_version }}
+  when:
+    - not php_mcrypt_installed_stat.stat.exists and (_php_mcrypt_package is not skipped or _php_mcrypt_package_stat.stat.exists)
+
+- name: Install
+  command: "{{ item }}"
+  args:
+    chdir: "/usr/local/src/mcrypt-{{ php_mcrypt_version }}"
+  loop:
+    - /usr/local/php/bin/phpize
+    - ./configure --with-php-config=/usr/local/php/bin/php-config
+    - make
+    - make install
+    - chown {{ php_web_user }}:{{ php_web_user }} {{ php_extension_dir }}/mcrypt.so
+  when:
+    - not php_mcrypt_installed_stat.stat.exists
+  tags:
+    - skip_ansible_lint
+
+- name: Generate configuration file
+  copy:
+    content: "extension=mcrypt.so"
+    dest: /usr/local/php/etc/php.d/mcrypt.ini
+    mode: "644"
+    owner: "{{ php_web_user }}"
+    group: "{{ php_web_user }}"
+  notify:
+    - restart php-fpm
+
+- name: Clean package
+  file:
+    path: "/usr/local/src/mcrypt-{{ php_mcrypt_version }}"
+    state: absent
