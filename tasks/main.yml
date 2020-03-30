@@ -2,7 +2,7 @@
 # tasks file for daixijun.php-mcrypt
 - name: Verify mcrypt extension is installed
   stat:
-    path: "{{ php_extension_dir }}/mcrypt.so"
+    path: "{{ ansible_local.php.extension_dir }}/mcrypt.so"
   register: php_mcrypt_installed_stat
 
 - name: Check php mcrypt package is already exists
@@ -43,7 +43,7 @@
     - ./configure --with-php-config=/usr/local/php/bin/php-config
     - make
     - make install
-    - chown {{ php_web_user }}:{{ php_web_user }} {{ php_extension_dir }}/mcrypt.so
+    - chown {{ ansible_local.php.web_user }}:{{ ansible_local.php.web_user }} {{ ansible_local.php.extension_dir }}/mcrypt.so
   when:
     - not php_mcrypt_installed_stat.stat.exists
   tags:
@@ -54,8 +54,8 @@
     content: "extension=mcrypt.so"
     dest: /usr/local/php/etc/php.d/mcrypt.ini
     mode: "644"
-    owner: "{{ php_web_user }}"
-    group: "{{ php_web_user }}"
+    owner: "{{ ansible_local.php.web_user }}"
+    group: "{{ ansible_local.php.web_user }}"
   notify:
     - restart php-fpm
 
