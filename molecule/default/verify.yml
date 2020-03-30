@@ -1,0 +1,40 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Gather services
+      service_facts:
+
+    - name: Assert php-fpm service state
+      assert:
+        that:
+          - "'php-fpm.service' in ansible_facts.services"
+          - ansible_facts.services['php-fpm.service'].state == 'running'
+          - ansible_facts.services['php-fpm.service'].status == 'enabled'
+
+    - name: Stat mcrypt.so
+      stat:
+        path: "{{ ansible_local.php.extension_dir }}/mcrypt.so"
+      register: _mcrypt_so
+
+    - name: Assert mcrypt so
+      assert:
+        that:
+          - _mcrypt_so.stat.exists is defined and _mcrypt_so.stat.exists | bool
+          - _mcrypt_so.stat.pw_name == ansible_local.php.web_user
+          - _mcrypt_so.stat.gr_name == ansible_local.php.web_user
+
+    - name: Check mcrypt extension is loaded
+      command: /usr/local/php/bin/php -m | grep mcrypt
+      become: true
+      changed_when: false
+      become_user: "{{ ansible_local.php.web_user }}"
+      register: _mcrypt_load
+
+    - name: Assert mcrypt extension is loaded
+      assert:
+        that:
+          - _mcrypt_load.rc == 0
+          - "'mcrypt' in _mcrypt_load.stdout"
