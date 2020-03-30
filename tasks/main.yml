@@ -38,6 +38,7 @@
   command: "{{ item }}"
   args:
     chdir: "/usr/local/src/mcrypt-{{ php_mcrypt_version }}"
+    warn: false
   loop:
     - /usr/local/php/bin/phpize
     - ./configure --with-php-config=/usr/local/php/bin/php-config
