@@ -7,7 +7,7 @@
 
 - name: Check php mcrypt package is already exists
   stat:
-    path: "{{ role_path }}/files/{{ php_mcrypt_download_url | basename }}"
+    path: "{{ playbook_dir }}/files/{{ php_mcrypt_download_url | basename }}"
   become: false
   run_once: true
   delegate_to: localhost
@@ -16,7 +16,7 @@
 - name: Download php mcrypt package
   get_url:
     url: "{{ php_mcrypt_download_url }}"
-    dest: "{{ role_path }}/files/"
+    dest: "{{ playbook_dir }}/files/{{ php_mcrypt_download_url | basename }}"
   become: false
   run_once: true
   delegate_to: localhost

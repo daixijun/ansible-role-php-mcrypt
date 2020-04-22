@@ -1,5 +1,5 @@
 ---
-name: ci
+name: build
 on: push
 jobs:
   test:
@@ -22,7 +22,7 @@ jobs:
       - name: Test with molecule
         run: |
           cd ..
-          cp -rf ansible-role-php-mcrypt daixijun.php-mcrypt
+          ln -sf ansible-role-php-mcrypt daixijun.php-mcrypt
           cd daixijun.php-mcrypt
           molecule test
       - name: Publish role to Galaxy
